@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
   <style>
-    /* ── Reset & base ─────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -33,7 +32,6 @@
       overflow-x: hidden;
     }
 
-    /* ── Noise grain overlay ──────────────────────── */
     body::before {
       content: '';
       position: fixed; inset: 0; z-index: 0; pointer-events: none;
@@ -42,7 +40,7 @@
       opacity: .35;
     }
 
-    /* ── Grid lines background ─────────────────────── */
+
     body::after {
       content: '';
       position: fixed; inset: 0; z-index: 0; pointer-events: none;
@@ -52,7 +50,6 @@
       background-size: 40px 40px;
     }
 
-    /* ── Layout ───────────────────────────────────── */
     .shell {
       position: relative; z-index: 1;
       min-height: 100vh;
@@ -60,7 +57,6 @@
       grid-template-rows: auto 1fr auto;
     }
 
-    /* ── Header ───────────────────────────────────── */
     header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 18px 32px;
@@ -102,7 +98,6 @@
       border-radius: 6px; padding: 4px 10px;
     }
 
-    /* ── Main content ─────────────────────────────── */
     main {
       display: grid;
       grid-template-columns: 1fr 340px;
@@ -111,7 +106,6 @@
       align-items: start;
     }
 
-    /* ── Video card ───────────────────────────────── */
     .video-card {
       border: 1px solid var(--border);
       border-radius: 16px; overflow: hidden;
@@ -130,7 +124,6 @@
       border-radius: 6px; padding: 4px 10px; letter-spacing: .1em;
     }
 
-    /* ── Side panel ───────────────────────────────── */
     .side {
       display: flex; flex-direction: column; gap: 16px;
     }
@@ -149,7 +142,6 @@
       color: var(--muted); margin-bottom: 14px;
     }
 
-    /* Gesture display */
     .gesture-big {
       text-align: center;
       padding: 10px 0 6px;
@@ -166,7 +158,6 @@
       min-height: 2rem;
     }
 
-    /* Confidence bar */
     .conf-row {
       display: flex; justify-content: space-between;
       font-size: .7rem; color: var(--muted);
@@ -184,7 +175,6 @@
       width: 0%;
     }
 
-    /* Stats grid */
     .stats-grid {
       display: grid; grid-template-columns: 1fr 1fr;
       gap: 10px;
@@ -204,7 +194,6 @@
       margin-top: 2px; letter-spacing: .08em;
     }
 
-    /* Finger indicators */
     .finger-row {
       display: flex; gap: 8px; justify-content: center;
       margin-top: 4px;
@@ -237,7 +226,6 @@
     }
     .finger-lbl span { width: 36px; text-align: center; }
 
-    /* Gesture history */
     .history-list {
       list-style: none; display: flex; flex-direction: column; gap: 6px;
       max-height: 220px; overflow-y: auto;
@@ -255,7 +243,7 @@
     }
     .history-list li span.e { font-size: 1.1rem; }
 
-    /* Gesture reference table */
+
     .ref-grid {
       display: grid; grid-template-columns: 1fr 1fr;
       gap: 6px;
@@ -267,19 +255,16 @@
     }
     .ref-item span { font-size: 1rem; }
 
-    /* ── Footer ───────────────────────────────────── */
     footer {
       text-align: center; padding: 14px;
       font-size: .65rem; color: var(--muted);
       border-top: 1px solid var(--border);
     }
 
-    /* ── Scrollbar ────────────────────────────────── */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: var(--bg2); }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-    /* ── Responsive ───────────────────────────────── */
     @media (max-width: 900px) {
       main { grid-template-columns: 1fr; }
       .side { display: grid; grid-template-columns: 1fr 1fr; }
@@ -294,7 +279,6 @@
 <body>
 <div class="shell">
 
-  <!-- ── Header ─────────────────────────────────── -->
   <header>
     <div class="logo">Gesture<span>AI</span></div>
     <div style="display:flex;gap:10px;align-items:center">
@@ -306,19 +290,15 @@
     </div>
   </header>
 
-  <!-- ── Main ───────────────────────────────────── -->
   <main>
 
-    <!-- Video feed -->
     <div class="video-card">
       <div class="video-corner">CAMERA · REALTIME</div>
       <img src="/video_feed" alt="Live Camera Feed" id="videoFeed" />
     </div>
 
-    <!-- Side panel -->
     <div class="side">
 
-      <!-- Current Gesture -->
       <div class="card">
         <div class="card-title">Current Gesture</div>
         <div class="gesture-big">
@@ -334,7 +314,6 @@
         </div>
       </div>
 
-      <!-- Stats -->
       <div class="card">
         <div class="card-title">Stats</div>
         <div class="stats-grid">
@@ -349,7 +328,6 @@
         </div>
       </div>
 
-      <!-- Finger visualiser -->
       <div class="card">
         <div class="card-title">Finger State</div>
         <div class="finger-row" id="fingerRow">
@@ -364,7 +342,6 @@
         </div>
       </div>
 
-      <!-- History -->
       <div class="card">
         <div class="card-title">Gesture History</div>
         <ul class="history-list" id="historyList">
@@ -374,7 +351,6 @@
         </ul>
       </div>
 
-      <!-- Reference -->
       <div class="card">
         <div class="card-title">Gesture Reference</div>
         <div class="ref-grid">
@@ -391,14 +367,14 @@
         </div>
       </div>
 
-    </div><!-- /side -->
+    </div>
   </main>
 
   <footer>GestureAI · OpenCV + MediaPipe + Flask · Real-time Hand Recognition</footer>
 </div>
 
 <script>
-  // Map gesture name → emoji character
+ 
   const EMOJIS = {
     "✌️  Peace":      "✌️",
     "👍 Thumbs Up":   "👍",
@@ -419,34 +395,28 @@
       const res  = await fetch("/status");
       const data = await res.json();
 
-      // FPS
       document.getElementById("fpsBadge").textContent =
         data.fps ? `${data.fps.toFixed(1)} FPS` : "-- FPS";
 
-      // Gesture
       const g = data.gesture;
       const emoji = EMOJIS[g] ?? (g === "None" ? "🤲" : "🖐");
       document.getElementById("gestureEmoji").textContent = emoji;
       document.getElementById("gestureName").textContent =
         g === "None" ? "No Hand Detected" : g;
 
-      // Confidence
       const pct = Math.round((data.confidence || 0) * 100);
       document.getElementById("confPct").textContent = pct + "%";
       document.getElementById("confBar").style.width = pct + "%";
 
-      // Stats
       document.getElementById("statHands").textContent = data.hand_count || 0;
       const fu = (data.fingers_up || []).filter(Boolean).length;
       document.getElementById("statFingers").textContent = fu;
 
-      // Finger indicators
       (data.fingers_up || [false,false,false,false,false]).forEach((v, i) => {
         const el = document.getElementById("f" + i);
         if (el) el.classList.toggle("up", !!v);
       });
 
-      // History
       const hist = data.gesture_history || [];
       if (JSON.stringify(hist) !== JSON.stringify(prevHistory)) {
         prevHistory = [...hist];
@@ -460,10 +430,9 @@
           }).join("");
         }
       }
-    } catch(e) { /* camera not ready yet */ }
+    } catch(e)
   }
 
-  // Poll every 200ms
   setInterval(pollStatus, 200);
   pollStatus();
 </script>
