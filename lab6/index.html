@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Face Profiling — MBTI Analyzer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f0f1a; color: #e0e0f0; min-height: 100vh; }
+    header { background: linear-gradient(135deg, #1a1a3e, #2d1b69); padding: 24px 40px; border-bottom: 1px solid #3a2d6e; }
+    header h1 { font-size: 1.6rem; font-weight: 700; }
+    header p  { font-size: 0.85rem; color: #a0a0cc; margin-top: 4px; }
+    .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 380px 1fr; gap: 28px; }
+    .card { background: #1a1a2e; border: 1px solid #2e2e50; border-radius: 16px; padding: 28px; }
+    .card h2 { font-size: 1rem; color: #a0a0cc; margin-bottom: 18px; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Tabs */
+    .tab-row { display: flex; gap: 8px; margin-bottom: 18px; }
+    .tab-btn { flex: 1; padding: 10px; border: 1px solid #3a3a6e; border-radius: 10px; background: transparent; color: #8080b0; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
+    .tab-btn.active { background: linear-gradient(135deg, #3a2a6e, #5c35bf); border-color: #7c5cbf; color: #fff; }
+
+    /* Upload */
+    .drop-zone { border: 2px dashed #3a3a6e; border-radius: 12px; padding: 36px 20px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative; }
+    .drop-zone:hover { border-color: #7c5cbf; background: #1e1e38; }
+    .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .drop-zone .icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .drop-zone p  { color: #7070a0; font-size: 0.9rem; }
+    .drop-zone small { color: #50508a; font-size: 0.78rem; margin-top: 6px; display: block; }
+
+    /* Camera */
+    #camera-section { display: none; }
+    #camera-section.active { display: block; }
+    #upload-section.hidden { display: none; }
+    .camera-wrap { position: relative; border-radius: 12px; overflow: hidden; border: 2px solid #3a3a6e; background: #0a0a18; }
+    #video { width: 100%; display: block; transform: scaleX(-1); }
+    .camera-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 160px; height: 200px; border: 2px solid rgba(140,92,246,0.6); border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; pointer-events: none; }
+    #countdown { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.55); font-size: 5rem; font-weight: 900; color: #fff; align-items: center; justify-content: center; border-radius: 10px; }
+    #countdown.show { display: flex; }
+    #canvas { display: none; }
+    .snap-btn { margin-top: 12px; width: 100%; padding: 13px; border: none; border-radius: 10px; background: linear-gradient(135deg, #1a5c3a, #22a86a); color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+    .snap-btn:hover { opacity: 0.88; }
+    .snap-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Preview */
+    #preview-wrap { margin-top: 18px; display: none; }
+    #preview-wrap img { width: 100%; border-radius: 10px; border: 1px solid #2e2e50; }
+
+    .btn { margin-top: 18px; width: 100%; padding: 13px; border: none; border-radius: 10px; background: linear-gradient(135deg, #5c35bf, #8b5cf6); color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.88; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Results */
+    #results { display: none; }
+    .mbti-banner { background: linear-gradient(135deg, #2d1b69, #1a3a5c); border-radius: 14px; padding: 26px 30px; margin-bottom: 22px; display: flex; align-items: center; gap: 24px; }
+    .mbti-code { font-size: 3.2rem; font-weight: 900; letter-spacing: 4px; color: #c4b5fd; line-height: 1; }
+    .mbti-info h3 { font-size: 1.3rem; color: #fff; }
+    .mbti-info p  { color: #a0b0cc; margin-top: 6px; font-size: 0.9rem; line-height: 1.5; }
+    .traits-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .trait-tag { background: #2a2a50; border: 1px solid #4a3a80; border-radius: 20px; padding: 4px 14px; font-size: 0.8rem; color: #c0b0f0; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .info-card { background: #1a1a2e; border: 1px solid #2e2e50; border-radius: 12px; padding: 20px; }
+    .info-card h4 { color: #8b8bcc; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+    .measure-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #22224a; font-size: 0.88rem; }
+    .measure-row:last-child { border-bottom: none; }
+    .measure-row .label { color: #8090b0; }
+    .measure-row .val   { color: #c4b5fd; font-weight: 600; }
+    .dim-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #22224a; }
+    .dim-row:last-child { border-bottom: none; }
+    .dim-label { width: 110px; font-size: 0.85rem; color: #8090b0; }
+    .dim-bar-wrap { flex: 1; background: #22224a; border-radius: 6px; height: 8px; overflow: hidden; }
+    .dim-bar { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #5c35bf, #8b5cf6); transition: width 0.8s ease; }
+    .dim-val { font-size: 0.82rem; color: #c4b5fd; width: 44px; text-align: right; font-weight: 600; }
+    .annotated-img { width: 100%; border-radius: 12px; border: 1px solid #2e2e50; margin-top: 18px; }
+    .careers { margin-top: 10px; font-size: 0.88rem; color: #a0c0e0; }
+    .careers span { color: #7090c0; }
+
+    /* Loader */
+    #loader { display: none; text-align: center; padding: 60px 20px; grid-column: 1 / -1; }
+    .spinner { width: 48px; height: 48px; border: 4px solid #2e2e50; border-top-color: #8b5cf6; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-msg { background: #2a1020; border: 1px solid #6a2040; border-radius: 10px; padding: 16px 20px; color: #f08080; margin-top: 12px; font-size: 0.9rem; display: none; }
+
+    @media (max-width: 760px) { .container { grid-template-columns: 1fr; } .grid-2 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1> Face Profiling — MBTI Analyzer</h1>
+  <p>Facial landmark detection &amp; 16 Personality Type classification using OpenCV + dlib</p>
+</header>
+
+<div class="container">
+
+  <!-- Left Panel -->
+  <div>
+    <div class="card">
+      <h2>Input Photo</h2>
+
+      <!-- Tab Switcher -->
+      <div class="tab-row">
+        <button class="tab-btn active" id="tab-upload" onclick="switchTab('upload')">📁 Upload Photo</button>
+        <button class="tab-btn"        id="tab-camera" onclick="switchTab('camera')">📷 Live Camera</button>
+      </div>
+
+      <!-- Upload Section -->
+      <div id="upload-section">
+        <div class="drop-zone">
+          <input type="file" id="file-input" accept="image/*" />
+          <div class="icon">🖼️</div>
+          <p>Click or drag &amp; drop a photo</p>
+          <small>Front-facing photos work best · JPG / PNG</small>
+        </div>
+      </div>
+
+      <!-- Camera Section -->
+      <div id="camera-section">
+        <div class="camera-wrap">
+          <video id="video" autoplay playsinline></video>
+          <div class="camera-overlay"></div>
+          <div id="countdown"></div>
+        </div>
+        <canvas id="canvas"></canvas>
+        <button class="snap-btn" id="snap-btn" onclick="startCountdown()">📸 Capture (3s timer)</button>
+      </div>
+
+      <!-- Preview -->
+      <div id="preview-wrap">
+        <img id="preview" src="" alt="Preview" />
+      </div>
+
+      <div class="error-msg" id="error-msg"></div>
+
+      <button class="btn" id="analyze-btn" disabled onclick="analyze()">Analyze Face</button>
+    </div>
+  </div>
+
+  <!-- Results Panel -->
+  <div>
+    <div id="loader">
+      <div class="spinner"></div>
+      <p style="color:#7070a0">Detecting landmarks &amp; calculating profile…</p>
+    </div>
+
+    <div id="results">
+      <div class="mbti-banner">
+        <div class="mbti-code" id="res-mbti">INTJ</div>
+        <div class="mbti-info">
+          <h3 id="res-name">The Architect</h3>
+          <p id="res-desc">—</p>
+          <div class="traits-row" id="res-traits"></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="info-card">
+          <h4>Feature Measurements</h4>
+          <div id="measurements-list"></div>
+        </div>
+        <div class="info-card">
+          <h4>Personality Dimensions</h4>
+          <div id="dimensions-list"></div>
+          <p class="careers" id="res-careers"></p>
+        </div>
+      </div>
+      <img id="annotated-img" class="annotated-img" src="" alt="Annotated face" />
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let currentBlob = null;
+  let stream      = null;
+
+  const video       = document.getElementById('video');
+  const canvas      = document.getElementById('canvas');
+  const preview     = document.getElementById('preview');
+  const previewWrap = document.getElementById('preview-wrap');
+  const analyzeBtn  = document.getElementById('analyze-btn');
+  const errorMsg    = document.getElementById('error-msg');
+  const countdown   = document.getElementById('countdown');
+
+  // ── Tab Switch ────────────────────────────────────────
+  async function switchTab(tab) {
+    document.getElementById('tab-upload').classList.toggle('active', tab === 'upload');
+    document.getElementById('tab-camera').classList.toggle('active', tab === 'camera');
+    document.getElementById('upload-section').classList.toggle('hidden', tab === 'camera');
+    document.getElementById('camera-section').classList.toggle('active', tab === 'camera');
+
+    previewWrap.style.display = 'none';
+    analyzeBtn.disabled = true;
+    currentBlob = null;
+    errorMsg.style.display = 'none';
+
+    if (tab === 'camera') {
+      await startCamera();
+    } else {
+      stopCamera();
+    }
+  }
+
+  // ── Camera ────────────────────────────────────────────
+  async function startCamera() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+      });
+      video.srcObject = stream;
+    } catch (e) {
+      showError('Camera access denied. Please allow camera in browser settings.');
+    }
+  }
+
+  function stopCamera() {
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  }
+
+  // ── Countdown + Capture ───────────────────────────────
+  function startCountdown() {
+    let count = 3;
+    countdown.textContent = count;
+    countdown.classList.add('show');
+    document.getElementById('snap-btn').disabled = true;
+
+    const iv = setInterval(() => {
+      count--;
+      if (count > 0) {
+        countdown.textContent = count;
+      } else {
+        clearInterval(iv);
+        countdown.classList.remove('show');
+        document.getElementById('snap-btn').disabled = false;
+        capturePhoto();
+      }
+    }, 1000);
+  }
+
+  function capturePhoto() {
+    const w = video.videoWidth  || 640;
+    const h = video.videoHeight || 480;
+    canvas.width  = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    // Flip horizontally so the captured image is not mirrored
+    ctx.translate(w, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, w, h);
+
+    canvas.toBlob(blob => {
+      currentBlob = blob;
+      preview.src = URL.createObjectURL(blob);
+      previewWrap.style.display = 'block';
+      analyzeBtn.disabled = false;
+      errorMsg.style.display = 'none';
+    }, 'image/jpeg', 0.92);
+  }
+
+  // ── File Upload ───────────────────────────────────────
+  document.getElementById('file-input').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    currentBlob = file;
+    preview.src = URL.createObjectURL(file);
+    previewWrap.style.display = 'block';
+    analyzeBtn.disabled = false;
+    errorMsg.style.display = 'none';
+  });
+
+  // ── Analyze ───────────────────────────────────────────
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.style.display = 'block';
+  }
+
+  async function analyze() {
+    if (!currentBlob) return;
+
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('loader').style.display  = 'block';
+    analyzeBtn.disabled = true;
+    errorMsg.style.display = 'none';
+
+    const fd = new FormData();
+    fd.append('image', currentBlob, 'photo.jpg');
+
+    try {
+      const resp = await fetch('/analyze', { method: 'POST', body: fd });
+      const data = await resp.json();
+      document.getElementById('loader').style.display = 'none';
+      analyzeBtn.disabled = false;
+      if (data.error) { showError(data.error); return; }
+      renderResults(data);
+    } catch (e) {
+      document.getElementById('loader').style.display = 'none';
+      analyzeBtn.disabled = false;
+      showError('Server error. Is app.py running?');
+    }
+  }
+
+  // ── Render Results ────────────────────────────────────
+  function renderResults(data) {
+    const p = data.profile;
+    document.getElementById('res-mbti').textContent = data.mbti;
+    document.getElementById('res-name').textContent = p.name || data.mbti;
+    document.getElementById('res-desc').textContent = p.description || '';
+
+    const traitsEl = document.getElementById('res-traits');
+    traitsEl.innerHTML = '';
+    (p.traits || []).forEach(t => {
+      const el = document.createElement('span');
+      el.className = 'trait-tag';
+      el.textContent = t;
+      traitsEl.appendChild(el);
+    });
+
+    document.getElementById('res-careers').innerHTML = `<span>Best careers:</span> ${p.careers || ''}`;
+
+    const measEl = document.getElementById('measurements-list');
+    measEl.innerHTML = '';
+    const labels = {
+      eye_openness: 'Eye Openness', inter_eye_dist: 'Inter-Eye Distance',
+      avg_eye_width: 'Avg Eye Width', nose_ratio: 'Nose Width/Length',
+      nose_length: 'Nose Length', mouth_ratio: 'Mouth Openness',
+      mouth_width: 'Mouth Width', jaw_width: 'Jaw Width',
+      face_ratio: 'Face H/W Ratio', jaw_taper: 'Jaw Taper',
+      brow_arch_ratio: 'Brow Arch Ratio', cheek_width: 'Cheek Width',
+    };
+    Object.entries(data.measurements).forEach(([k, v]) => {
+      const row = document.createElement('div');
+      row.className = 'measure-row';
+      row.innerHTML = `<span class="label">${labels[k] || k}</span><span class="val">${v}</span>`;
+      measEl.appendChild(row);
+    });
+
+    const dimEl = document.getElementById('dimensions-list');
+    dimEl.innerHTML = '';
+    const dims = [
+      { label: data.mbti[0]==='E' ? 'Extrovert (E)' : 'Introvert (I)',  val: data.scores.E_score, max: 7 },
+      { label: data.mbti[1]==='N' ? 'Intuitive (N)' : 'Sensing (S)',    val: data.scores.N_score, max: 2.5 },
+      { label: data.mbti[2]==='F' ? 'Feeling (F)'   : 'Thinking (T)',   val: data.scores.F_score, max: 0.6 },
+      { label: data.mbti[3]==='J' ? 'Judging (J)'   : 'Perceiving (P)', val: data.scores.J_score, max: 2 },
+    ];
+    dims.forEach(d => {
+      const pct = Math.min(100, Math.round((d.val / d.max) * 100));
+      const row = document.createElement('div');
+      row.className = 'dim-row';
+      row.innerHTML = `<span class="dim-label">${d.label}</span>
+        <div class="dim-bar-wrap"><div class="dim-bar" style="width:${pct}%"></div></div>
+        <span class="dim-val">${pct}%</span>`;
+      dimEl.appendChild(row);
+    });
+
+    document.getElementById('annotated-img').src = data.image_url;
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
