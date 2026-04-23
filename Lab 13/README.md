@@ -21,7 +21,7 @@ Wakeel AI is a free AI-powered legal aid assistant for Pakistani citizens. Users
 | Layer | Technology |
 |-------|-----------|
 | Backend | Python + Flask |
-| AI Engine | Grok API — `grok-3-latest` (xAI) |
+| AI Engine | Groq API  |
 | Frontend | HTML + CSS + Vanilla JS |
 | Session | Flask Sessions |
 | Fonts | Google Fonts (Playfair Display + DM Sans) |
