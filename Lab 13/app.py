@@ -12,7 +12,6 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "legal-aid-pakistan-2026")
 
-# Groq client
 client = Groq(api_key="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")
 
 GROQ_MODEL = "llama-3.3-70b-versatile"
